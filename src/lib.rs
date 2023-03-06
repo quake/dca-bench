@@ -28,9 +28,14 @@ pub trait Proof {
     type Item;
     type Commitment;
 
-    fn verify(&self, commitment: Self::Commitment, elements: Vec<Self::Item>) -> bool;
+    fn verify(
+        self,
+        commitment: Self::Commitment,
+        elements: Vec<Self::Item>,
+    ) -> Result<bool, AccumulatorError>;
 }
 
+#[derive(Debug)]
 pub enum AccumulatorError {
     ElementExists(usize),
     ElementNotFound(usize),
@@ -38,6 +43,7 @@ pub enum AccumulatorError {
     InvalidCommitment,
 }
 
+#[derive(Clone)]
 pub struct OutPoint {
     pub tx_hash: [u8; 32],
     pub index: u32,

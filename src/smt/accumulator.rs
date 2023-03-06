@@ -1,11 +1,11 @@
 use super::{store::DefaultStore, ZERO_CELL_STATUS};
-use crate::{AccumulatorError, AccumulatorReader, AccumulatorWriter, CellStatus, OutPoint};
+use crate::{AccumulatorError, AccumulatorReader, AccumulatorWriter, CellStatus, OutPoint, Proof};
 use rocksdb::{
     prelude::{Delete, Get, Iterate, Put},
     ReadOptions,
 };
 use sparse_merkle_tree::{
-    blake2b::Blake2bHasher, error::Error, MerkleProof, SparseMerkleTree, H256,
+    blake2b::Blake2bHasher, error::Error, traits::Value, MerkleProof, SparseMerkleTree, H256,
 };
 
 pub struct SMTAccumulator<'a, T, W> {
@@ -122,6 +122,7 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct AccumulatorCommitment {
     root: H256,
     sequence: u64,
@@ -129,6 +130,26 @@ pub struct AccumulatorCommitment {
 
 pub struct AccumulatorProof {
     inner: MerkleProof,
+}
+
+impl Proof for AccumulatorProof {
+    type Item = (OutPoint, CellStatus);
+
+    type Commitment = AccumulatorCommitment;
+
+    fn verify(
+        self,
+        commitment: Self::Commitment,
+        elements: Vec<Self::Item>,
+    ) -> Result<bool, AccumulatorError> {
+        let leaves = elements
+            .into_iter()
+            .map(|(out_point, cell_status)| (out_point.hash().into(), cell_status.to_h256()))
+            .collect();
+        self.inner
+            .verify::<Blake2bHasher>(&commitment.root, leaves)
+            .map_err(Into::into)
+    }
 }
 
 impl From<Error> for AccumulatorError {

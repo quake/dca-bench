@@ -2,9 +2,12 @@ use rocksdb::{prelude::Open, OptimisticTransactionDB};
 use sparse_merkle_tree::{blake2b::Blake2bHasher, traits::Value, SparseMerkleTree, H256};
 use tempfile::{Builder, TempDir};
 
-use crate::new_blake2b;
+use crate::{new_blake2b, AccumulatorReader, AccumulatorWriter, CellStatus, OutPoint, Proof};
 
-use super::store::DefaultStore;
+use super::{
+    accumulator::{self, SMTAccumulator},
+    store::DefaultStore,
+};
 
 type DefaultStoreSMT<'a, T, W> = SparseMerkleTree<Blake2bHasher, Word, DefaultStore<'a, T, W>>;
 
@@ -138,4 +141,64 @@ fn test_historical_queries() {
     let smt = DefaultStoreSMT::new_with_store(rocksdb_store).unwrap();
     let root = smt.root().clone();
     assert_eq!(root4, root);
+}
+
+#[test]
+fn test_accumulator() {
+    let (db, _tmp_dir) = open_db();
+    let tx = db.transaction_default();
+    let mut accumulator = SMTAccumulator::new(&tx).unwrap();
+
+    let out_point_1 = OutPoint {
+        tx_hash: [1u8; 32],
+        index: 0,
+    };
+
+    let out_point_2 = OutPoint {
+        tx_hash: [2u8; 32],
+        index: 0,
+    };
+
+    let out_point_3 = OutPoint {
+        tx_hash: [3u8; 32],
+        index: 0,
+    };
+
+    accumulator
+        .add(vec![out_point_1.clone(), out_point_2.clone()])
+        .unwrap();
+    let commitment1 = accumulator.commit().unwrap();
+
+    accumulator.add(vec![out_point_3.clone()]).unwrap();
+    let commitment2 = accumulator.commit().unwrap();
+
+    accumulator.delete(vec![out_point_2.clone()]).unwrap();
+    let commitment3 = accumulator.commit().unwrap();
+
+    tx.commit().unwrap();
+
+    let snapshot = db.snapshot();
+    let accumulator = SMTAccumulator::<_, ()>::new_with_sequence(&snapshot, 0).unwrap();
+    let proof1 = accumulator
+        .proof(commitment1.clone(), vec![out_point_1.clone()])
+        .unwrap();
+    assert!(proof1
+        .verify(commitment1, vec![(out_point_1, CellStatus::new_live(0))])
+        .unwrap());
+
+    let accumulator = SMTAccumulator::<_, ()>::new_with_sequence(&snapshot, 1).unwrap();
+    let proof2 = accumulator
+        .proof(commitment2.clone(), vec![out_point_3.clone()])
+        .unwrap();
+    assert!(proof2
+        .verify(commitment2, vec![(out_point_3, CellStatus::new_live(1))])
+        .unwrap());
+
+    let accumulator = SMTAccumulator::<_, ()>::new_with_sequence(&snapshot, 2).unwrap();
+    let proof3 = accumulator
+        .proof(commitment3.clone(), vec![out_point_2.clone()])
+        .unwrap();
+    assert!(proof3
+        .verify(commitment3, vec![(out_point_2, CellStatus::new_dead(0, 2))])
+        .unwrap());
 }
