@@ -9,6 +9,7 @@ edition = "2021"
 rocksdb = { package = "ckb-rocksdb", version = "0.18", default-features = false, features = ["snappy", "march-native"] }
 sparse-merkle-tree = { version = "0.6.1", features = ["trie"] }
 blake2b-rs = "0.2"
+rand_chacha = "0.3"
 
 [dev-dependencies]
 tempfile = "3.0"

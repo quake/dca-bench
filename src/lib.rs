@@ -37,7 +37,6 @@ pub trait Proof {
 
 #[derive(Debug)]
 pub enum AccumulatorError {
-    ElementExists(usize),
     ElementNotFound(usize),
     InternalError(String),
     InvalidCommitment,

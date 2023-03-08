@@ -1,7 +1,7 @@
 use crate::{new_blake2b, CellStatus};
 use sparse_merkle_tree::{traits::Value, H256};
 
-mod accumulator;
+pub mod accumulator;
 mod serde;
 mod store;
 #[cfg(test)]

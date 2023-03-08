@@ -32,14 +32,7 @@ where
     type Proof = AccumulatorProof;
 
     fn add(&mut self, elements: Vec<Self::Item>) -> Result<(), AccumulatorError> {
-        for (i, out_point) in elements.iter().enumerate() {
-            let key = out_point.hash();
-            let status = self.smt.get(&key.into())?;
-            if status != ZERO_CELL_STATUS {
-                return Err(AccumulatorError::ElementExists(i));
-            }
-        }
-
+        // we don't check if the element exists already, caller should make sure the element is unique
         let sequence = self.smt.store().sequence();
         self.smt.update_all(
             elements
@@ -54,12 +47,13 @@ where
     }
 
     fn delete(&mut self, elements: Vec<Self::Item>) -> Result<(), AccumulatorError> {
+        // we don't check if the element has been deleted already, caller should make sure the element is deleted only once
         let sequence = self.smt.store().sequence();
         let mut kvs = Vec::with_capacity(elements.len());
         for (i, out_point) in elements.iter().enumerate() {
             let key = out_point.hash();
             let mut status = self.smt.get(&key.into())?;
-            if !status.is_live() {
+            if status == ZERO_CELL_STATUS {
                 return Err(AccumulatorError::ElementNotFound(i));
             }
             status.mark_as_dead(sequence);
@@ -71,7 +65,7 @@ where
     }
 
     fn commit(&mut self) -> Result<Self::Commitment, AccumulatorError> {
-        let root = self.smt.root().clone();
+        let root = *self.smt.root();
         let sequence = self.smt.store().sequence();
         self.smt.store_mut().commit()?;
         Ok(AccumulatorCommitment { root, sequence })
@@ -126,6 +120,16 @@ where
 pub struct AccumulatorCommitment {
     root: H256,
     sequence: u64,
+}
+
+impl AccumulatorCommitment {
+    pub fn root(&self) -> &H256 {
+        &self.root
+    }
+
+    pub fn sequence(&self) -> u64 {
+        self.sequence
+    }
 }
 
 pub struct AccumulatorProof {
