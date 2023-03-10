@@ -1,4 +1,4 @@
-use super::store::DefaultStore;
+use super::store::{DefaultStore, ELEMENT_KEY};
 use crate::{
     new_blake2b, AccumulatorError, AccumulatorReader, AccumulatorWriter, CellStatus, OutPoint,
     Proof,
@@ -30,7 +30,7 @@ impl<'a> From<(&'a OutPoint, &'a CellStatus)> for H256 {
         let mut hash = [0u8; 32];
         hasher.update(out_point.tx_hash.as_ref());
         hasher.update(&out_point.index.to_le_bytes());
-        hasher.update(&status.block_numbers.as_ref());
+        hasher.update(status.block_numbers.as_ref());
         hasher.finalize(&mut hash);
         H256(hash)
     }
@@ -84,6 +84,7 @@ where
             let pos = self.mmr.push((&out_point, &cell_status).into())?;
             // since mmr only store the hash of the element, we need to store the element <=> pos mapping by ourselves
             let key = [
+                ELEMENT_KEY,
                 out_point.hash().as_ref(),
                 out_point.index.to_le_bytes().as_ref(),
             ]
@@ -104,6 +105,7 @@ where
         let mut pos_and_cells: Vec<_> = Vec::with_capacity(elements.len());
         for (i, out_point) in elements.iter().enumerate() {
             let key = [
+                ELEMENT_KEY,
                 out_point.hash().as_ref(),
                 out_point.index.to_le_bytes().as_ref(),
             ]
@@ -134,7 +136,7 @@ where
     fn commit(&mut self) -> Result<Self::Commitment, AccumulatorError> {
         let root = self.mmr.get_root()?;
         let sequence = self.mmr.store().sequence();
-        self.mmr.commit();
+        self.mmr.commit()?;
         self.mmr.store_mut().commit()?;
         Ok(AccumulatorCommitment { root, sequence })
     }
@@ -172,6 +174,7 @@ where
         let mut pos_list: Vec<_> = Vec::with_capacity(elements.len());
         for (i, out_point) in elements.iter().enumerate() {
             let key = [
+                ELEMENT_KEY,
                 out_point.hash().as_ref(),
                 out_point.index.to_le_bytes().as_ref(),
             ]
@@ -192,6 +195,7 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct AccumulatorCommitment {
     root: H256,
     sequence: u64,

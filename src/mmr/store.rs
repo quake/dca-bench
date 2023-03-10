@@ -4,8 +4,9 @@ use merkle_mountain_range::{Error, MMRStoreReadOps, MMRStoreWriteOps};
 use rocksdb::{prelude::*, Direction, IteratorMode};
 
 const POS_KEY: &[u8] = &[0];
-const ELEMENT_KEY: &[u8] = &[1];
-const SEQUENCE_KEY: &[u8] = &[2];
+const SEQUENCE_KEY: &[u8] = &[1];
+
+pub const ELEMENT_KEY: &[u8] = &[2];
 
 /// A SMT `Store` implementation backed by a RocksDB database, using the default column family and supports historical queries.
 pub struct DefaultStore<'a, DB, WO> {
