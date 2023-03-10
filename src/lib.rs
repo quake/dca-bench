@@ -1,5 +1,6 @@
 use blake2b_rs::{Blake2b, Blake2bBuilder};
 
+pub mod mmr;
 pub mod smt;
 
 pub trait AccumulatorWriter {
@@ -40,6 +41,7 @@ pub enum AccumulatorError {
     ElementNotFound(usize),
     InternalError(String),
     InvalidCommitment,
+    InvalidProof,
 }
 
 #[derive(Clone)]

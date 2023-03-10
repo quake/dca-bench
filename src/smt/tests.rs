@@ -4,12 +4,9 @@ use tempfile::{Builder, TempDir};
 
 use crate::{new_blake2b, AccumulatorReader, AccumulatorWriter, CellStatus, OutPoint, Proof};
 
-use super::{
-    accumulator::{self, SMTAccumulator},
-    store::DefaultStore,
-};
+use super::{accumulator::SMTAccumulator, store::DefaultStore};
 
-type DefaultStoreSMT<'a, T, W> = SparseMerkleTree<Blake2bHasher, Word, DefaultStore<'a, T, W>>;
+type DefaultStoreSMT<'a, DB, WO> = SparseMerkleTree<Blake2bHasher, Word, DefaultStore<'a, DB, WO>>;
 
 #[derive(Default, Clone)]
 pub struct Word(String);

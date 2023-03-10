@@ -8,24 +8,24 @@ use sparse_merkle_tree::{
     blake2b::Blake2bHasher, error::Error, traits::Value, MerkleProof, SparseMerkleTree, H256,
 };
 
-pub struct SMTAccumulator<'a, T, W> {
-    smt: SparseMerkleTree<Blake2bHasher, CellStatus, DefaultStore<'a, T, W>>,
+pub struct SMTAccumulator<'a, DB, WO> {
+    smt: SparseMerkleTree<Blake2bHasher, CellStatus, DefaultStore<'a, DB, WO>>,
 }
 
-impl<'a, T, W> SMTAccumulator<'a, T, W>
+impl<'a, DB, WO> SMTAccumulator<'a, DB, WO>
 where
-    T: Iterate + Get<ReadOptions> + Delete<W> + Put<W>,
+    DB: Iterate + Get<ReadOptions> + Delete<WO> + Put<WO>,
 {
-    pub fn new(db: &'a T) -> Result<Self, Error> {
+    pub fn new(db: &'a DB) -> Result<Self, Error> {
         let store = DefaultStore::new(db);
         let smt = SparseMerkleTree::new_with_store(store)?;
         Ok(SMTAccumulator { smt })
     }
 }
 
-impl<'a, T, W> AccumulatorWriter for SMTAccumulator<'a, T, W>
+impl<'a, DB, WO> AccumulatorWriter for SMTAccumulator<'a, DB, WO>
 where
-    T: Iterate + Get<ReadOptions> + Delete<W> + Put<W>,
+    DB: Iterate + Get<ReadOptions> + Delete<WO> + Put<WO>,
 {
     type Item = OutPoint;
     type Commitment = AccumulatorCommitment;
@@ -72,20 +72,20 @@ where
     }
 }
 
-impl<'a, T, W> SMTAccumulator<'a, T, W>
+impl<'a, DB, WO> SMTAccumulator<'a, DB, WO>
 where
-    T: Iterate + Get<ReadOptions>,
+    DB: Iterate + Get<ReadOptions>,
 {
-    pub fn new_with_sequence(db: &'a T, sequence: u64) -> Result<Self, Error> {
+    pub fn new_with_sequence(db: &'a DB, sequence: u64) -> Result<Self, Error> {
         let store = DefaultStore::new_with_sequence(db, sequence);
         let smt = SparseMerkleTree::new_with_store(store)?;
         Ok(SMTAccumulator { smt })
     }
 }
 
-impl<'a, T, W> AccumulatorReader for SMTAccumulator<'a, T, W>
+impl<'a, DB, WO> AccumulatorReader for SMTAccumulator<'a, DB, WO>
 where
-    T: Iterate + Get<ReadOptions>,
+    DB: Iterate + Get<ReadOptions>,
 {
     type Item = OutPoint;
     type Commitment = AccumulatorCommitment;

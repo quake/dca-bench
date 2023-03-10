@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 rocksdb = { package = "ckb-rocksdb", version = "0.18", default-features = false, features = ["snappy", "march-native"] }
 sparse-merkle-tree = { version = "0.6.1", features = ["trie"] }
+merkle-mountain-range = { package = "ckb-merkle-mountain-range", git = "https://github.com/quake/merkle-mountain-range", branch = "quake/updatable" }
 blake2b-rs = "0.2"
 rand_chacha = "0.3"
 
