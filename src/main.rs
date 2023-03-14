@@ -1,3 +1,4 @@
+use std::time::Instant;
 use dca_bench::{
     mmr::accumulator::MMRAccumulator, smt::accumulator::SMTAccumulator, AccumulatorWriter, OutPoint,
 };
@@ -30,8 +31,8 @@ macro_rules! bench {
         let mut rng3 = ChaChaRng::from_seed([1u8; 32]);
         rng3.set_word_pos(start_block_number as u128);
 
+        let now = Instant::now();
         for i in start_block_number..start_block_number + total_blocks {
-            println!("generating block {}", i);
             // each block we produce 10 new cells and consume 6 old cells
             let out_points = (0..10)
                 .map(|_| {
@@ -59,6 +60,7 @@ macro_rules! bench {
 
             // commit rocksdb transaction every 100 blocks
             if i % 100 == 99 {
+                println!("elapsed {} millis, finished block: {}", now.elapsed().as_millis(), i);
                 tx.commit().unwrap();
                 tx = db.transaction_default();
                 accumulator = <$accumulator>::new(&tx).unwrap();
@@ -76,7 +78,7 @@ fn main() {
         std::process::exit(1);
     };
 
-    let accumulator_type = args.next().unwrap();
+    let accumulator_type = args.nth(1).unwrap();
     if accumulator_type == "smt" {
         bench!(SMTAccumulator::<OptimisticTransaction, ()>);
     } else if accumulator_type == "mmr" {

@@ -8,6 +8,6 @@ This repository benchmarks the performance of the different cryptographic accumu
 ## How to run
 
 ```
-cargo run --release -- mmr /tmp/mmr 0 10000
-cargo run --release -- smt /tmp/smt 0 10000
+cargo run --release -- mmr /tmp/mmr 0 100000
+cargo run --release -- smt /tmp/smt 0 100000
 ```
