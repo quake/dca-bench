@@ -149,7 +149,7 @@ fn test_historical_queries() {
 fn test_accumulator() {
     let (db, _tmp_dir) = open_db();
     let tx = db.transaction_default();
-    let mut accumulator = MMRAccumulator::new(0, &tx).unwrap();
+    let mut accumulator = MMRAccumulator::new(&tx).unwrap();
 
     let out_point_1 = OutPoint {
         tx_hash: [1u8; 32],
@@ -180,9 +180,7 @@ fn test_accumulator() {
     tx.commit().unwrap();
 
     let snapshot = db.snapshot();
-    let accumulator =
-        MMRAccumulator::<_, ()>::new_with_sequence(leaf_index_to_mmr_size(1), &snapshot, 0)
-            .unwrap();
+    let accumulator = MMRAccumulator::<_, ()>::new_with_sequence(&snapshot, 0).unwrap();
     let proof1 = accumulator
         .proof(commitment1.clone(), vec![out_point_1.clone()])
         .unwrap();
@@ -190,9 +188,7 @@ fn test_accumulator() {
         .verify(commitment1, vec![(out_point_1, CellStatus::new_live(0))])
         .unwrap());
 
-    let accumulator =
-        MMRAccumulator::<_, ()>::new_with_sequence(leaf_index_to_mmr_size(2), &snapshot, 1)
-            .unwrap();
+    let accumulator = MMRAccumulator::<_, ()>::new_with_sequence(&snapshot, 1).unwrap();
     let proof2 = accumulator
         .proof(commitment2.clone(), vec![out_point_3.clone()])
         .unwrap();
@@ -200,9 +196,7 @@ fn test_accumulator() {
         .verify(commitment2, vec![(out_point_3, CellStatus::new_live(1))])
         .unwrap());
 
-    let accumulator =
-        MMRAccumulator::<_, ()>::new_with_sequence(leaf_index_to_mmr_size(2), &snapshot, 2)
-            .unwrap();
+    let accumulator = MMRAccumulator::<_, ()>::new_with_sequence(&snapshot, 2).unwrap();
     let proof3 = accumulator
         .proof(commitment3.clone(), vec![out_point_2.clone()])
         .unwrap();

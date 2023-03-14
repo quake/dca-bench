@@ -1,4 +1,4 @@
-use super::store::{DefaultStore, ELEMENT_KEY};
+use super::store::{DefaultStore, ELEMENT_KEY, MMR_SIZE_KEY};
 use crate::{
     new_blake2b, AccumulatorError, AccumulatorReader, AccumulatorWriter, CellStatus, OutPoint,
     Proof,
@@ -59,8 +59,12 @@ impl<'a, DB, WO> MMRAccumulator<'a, DB, WO>
 where
     DB: Iterate + Get<ReadOptions> + Put<WO>,
 {
-    pub fn new(mmr_size: u64, db: &'a DB) -> Result<Self, Error> {
+    pub fn new(db: &'a DB) -> Result<Self, Error> {
         let store = DefaultStore::new(db);
+        let mmr_size = store
+            .get(MMR_SIZE_KEY)
+            .map(|slice| u64::from_le_bytes(slice.as_ref().try_into().expect("checked length")))
+            .unwrap_or_default();
         let mmr = MMR::new(mmr_size, store);
         Ok(MMRAccumulator { mmr })
     }
@@ -77,7 +81,6 @@ where
     fn add(&mut self, elements: Vec<Self::Item>) -> Result<(), AccumulatorError> {
         // we don't check if the element exists already, caller should make sure the element is unique
         let sequence = self.mmr.store().sequence();
-        self.mmr.store_mut();
 
         for out_point in elements {
             let cell_status = CellStatus::new_live(sequence);
@@ -136,7 +139,11 @@ where
     fn commit(&mut self) -> Result<Self::Commitment, AccumulatorError> {
         let root = self.mmr.get_root()?;
         let sequence = self.mmr.store().sequence();
+        let mmr_size = self.mmr.mmr_size();
         self.mmr.commit()?;
+        self.mmr
+            .store_mut()
+            .put(MMR_SIZE_KEY, mmr_size.to_le_bytes())?;
         self.mmr.store_mut().commit()?;
         Ok(AccumulatorCommitment { root, sequence })
     }
@@ -146,8 +153,12 @@ impl<'a, DB, WO> MMRAccumulator<'a, DB, WO>
 where
     DB: Iterate + Get<ReadOptions>,
 {
-    pub fn new_with_sequence(mmr_size: u64, db: &'a DB, sequence: u64) -> Result<Self, Error> {
+    pub fn new_with_sequence(db: &'a DB, sequence: u64) -> Result<Self, Error> {
         let store = DefaultStore::new_with_sequence(db, sequence);
+        let mmr_size = store
+            .get(MMR_SIZE_KEY)
+            .map(|slice| u64::from_le_bytes(slice.as_ref().try_into().expect("checked length")))
+            .unwrap_or_default();
         let mmr = MMR::new(mmr_size, store);
         Ok(MMRAccumulator { mmr })
     }

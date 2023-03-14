@@ -7,8 +7,9 @@ const POS_KEY: &[u8] = &[0];
 const SEQUENCE_KEY: &[u8] = &[1];
 
 pub const ELEMENT_KEY: &[u8] = &[2];
+pub const MMR_SIZE_KEY: &[u8] = &[3];
 
-/// A SMT `Store` implementation backed by a RocksDB database, using the default column family and supports historical queries.
+/// A MMR `Store` implementation backed by a RocksDB database, using the default column family and supports historical queries.
 pub struct DefaultStore<'a, DB, WO> {
     // The RocksDB database which stores the data, can be a `DB` / `OptimisticTransactionDB` / `Snapshot` etc.
     inner: &'a DB,

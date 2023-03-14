@@ -148,14 +148,14 @@ where
         ]
         .concat();
         self.inner
-            .put(k, &[])
+            .put(k, [])
             .map_err(|e| Error::Store(e.to_string()))
     }
 
     fn remove_leaf(&mut self, leaf_key: &H256) -> Result<(), Error> {
         let k = [leaf_key.as_slice(), self.sequence.to_be_bytes().as_ref()].concat();
         self.inner
-            .put(k, &[])
+            .put(k, [])
             .map_err(|e| Error::Store(e.to_string()))
     }
 }
