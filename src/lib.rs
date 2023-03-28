@@ -2,6 +2,7 @@ use blake2b_rs::{Blake2b, Blake2bBuilder};
 
 pub mod mmr;
 pub mod smt;
+pub mod smt_append_only;
 
 pub trait AccumulatorWriter {
     type Item;

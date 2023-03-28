@@ -136,7 +136,8 @@ dependencies = [
  "ckb-merkle-mountain-range",
  "ckb-rocksdb",
  "rand_chacha",
- "sparse-merkle-tree",
+ "sparse-merkle-tree 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sparse-merkle-tree 0.6.1 (git+https://github.com/jjyr/sparse-merkle-tree?branch=append-only-pr)",
  "tempfile",
 ]
 
@@ -423,6 +424,16 @@ dependencies = [
  "blake2b-rs",
  "cc",
  "cfg-if 0.1.10",
+]
+
+[[package]]
+name = "sparse-merkle-tree"
+version = "0.6.1"
+source = "git+https://github.com/jjyr/sparse-merkle-tree?branch=append-only-pr#2b8c59d027bacbe50d2c8e0a1f1ef312aa6f75c9"
+dependencies = [
+ "blake2b-rs",
+ "cc",
+ "cfg-if 1.0.0",
 ]
 
 [[package]]

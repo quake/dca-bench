@@ -1,12 +1,13 @@
-use std::time::Instant;
 use dca_bench::{
-    mmr::accumulator::MMRAccumulator, smt::accumulator::SMTAccumulator, AccumulatorWriter, OutPoint,
+    mmr::accumulator::MMRAccumulator, smt::accumulator::SMTAccumulator,
+    smt_append_only::accumulator::SMTAppendOnlyAccumulator, AccumulatorWriter, OutPoint,
 };
 use rand_chacha::{
     rand_core::{RngCore, SeedableRng},
     ChaChaRng,
 };
 use rocksdb::{prelude::Open, OptimisticTransaction, OptimisticTransactionDB};
+use std::time::Instant;
 
 macro_rules! bench {
     ($accumulator: ty) => {
@@ -83,6 +84,8 @@ fn main() {
         bench!(SMTAccumulator::<OptimisticTransaction, ()>);
     } else if accumulator_type == "mmr" {
         bench!(MMRAccumulator::<OptimisticTransaction, ()>);
+    } else if accumulator_type == "smt-append-only" {
+        bench!(SMTAppendOnlyAccumulator::<OptimisticTransaction, ()>);
     } else {
         println!("first argument must be smt or mmr");
         std::process::exit(1);
