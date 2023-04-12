@@ -6,7 +6,6 @@ pub mod smt;
 pub trait AccumulatorWriter {
     type Item;
     type Commitment;
-    type Proof;
 
     fn add(&mut self, elements: Vec<Self::Item>) -> Result<(), AccumulatorError>;
     fn delete(&mut self, elements: Vec<Self::Item>) -> Result<(), AccumulatorError>;

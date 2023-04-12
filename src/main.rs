@@ -1,4 +1,3 @@
-use std::time::Instant;
 use dca_bench::{
     mmr::accumulator::MMRAccumulator, smt::accumulator::SMTAccumulator, AccumulatorWriter, OutPoint,
 };
@@ -7,6 +6,7 @@ use rand_chacha::{
     ChaChaRng,
 };
 use rocksdb::{prelude::Open, OptimisticTransaction, OptimisticTransactionDB};
+use std::time::Instant;
 
 macro_rules! bench {
     ($accumulator: ty) => {

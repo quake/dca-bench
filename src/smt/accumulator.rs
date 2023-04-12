@@ -29,7 +29,6 @@ where
 {
     type Item = OutPoint;
     type Commitment = AccumulatorCommitment;
-    type Proof = AccumulatorProof;
 
     fn add(&mut self, elements: Vec<Self::Item>) -> Result<(), AccumulatorError> {
         // we don't check if the element exists already, caller should make sure the element is unique
