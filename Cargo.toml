@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocksdb = { package = "ckb-rocksdb", version = "0.18", default-features = false, features = ["snappy", "march-native"] }
+rocksdb = { package = "ckb-rocksdb", version ="=0.20.0", features = ["snappy"], default-features = false }
 sparse-merkle-tree = { version = "0.6.1", features = ["std", "trie"] }
 merkle-mountain-range = { package = "ckb-merkle-mountain-range", git = "https://github.com/quake/merkle-mountain-range", branch = "quake/updatable" }
 blake2b-rs = "0.2"

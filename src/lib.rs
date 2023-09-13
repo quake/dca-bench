@@ -2,6 +2,7 @@ use blake2b_rs::{Blake2b, Blake2bBuilder};
 
 pub mod mmr;
 pub mod smt;
+pub mod smt_live;
 
 pub trait AccumulatorWriter {
     type Item;
@@ -91,6 +92,9 @@ impl CellStatus {
         consumed_by.copy_from_slice(&consumed_by_block_number.to_le_bytes());
     }
 }
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct BlockNumber([u8; 8]);
 
 pub fn new_blake2b() -> Blake2b {
     Blake2bBuilder::new(32).build()

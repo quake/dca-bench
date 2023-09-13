@@ -1,5 +1,6 @@
 use dca_bench::{
     mmr::accumulator::MMRAccumulator, smt::accumulator::SMTAccumulator, AccumulatorWriter, OutPoint,
+    smt_live::accumulator::SMTAccumulator as SMTLiveAccumulator,
 };
 use rand_chacha::{
     rand_core::{RngCore, SeedableRng},
@@ -72,7 +73,7 @@ fn main() {
     let mut args = std::env::args();
     if args.len() < 5 {
         println!(
-            "Usage: {} <smt|mmr> <path-to-rocksdb> <start-block-number> <total-blocks>",
+            "Usage: {} <smt|mmr|smt_live> <path-to-rocksdb> <start-block-number> <total-blocks>",
             args.next().unwrap()
         );
         std::process::exit(1);
@@ -83,8 +84,10 @@ fn main() {
         bench!(SMTAccumulator::<OptimisticTransaction, ()>);
     } else if accumulator_type == "mmr" {
         bench!(MMRAccumulator::<OptimisticTransaction, ()>);
+    } else if accumulator_type == "smt_live" {
+        bench!(SMTLiveAccumulator::<OptimisticTransaction, ()>);
     } else {
-        println!("first argument must be smt or mmr");
+        println!("first argument must be smt | mmr | smt_live");
         std::process::exit(1);
     }
 }
