@@ -1,12 +1,15 @@
 use dca_bench::{
-    mmr::accumulator::MMRAccumulator, smt::accumulator::SMTAccumulator, AccumulatorWriter, OutPoint,
-    smt_live::accumulator::SMTAccumulator as SMTLiveAccumulator,
+    mmr::accumulator::MMRAccumulator, smt::accumulator::SMTAccumulator,
+    smt_live::accumulator::SMTAccumulator as SMTLiveAccumulator, AccumulatorWriter, OutPoint,
 };
 use rand_chacha::{
     rand_core::{RngCore, SeedableRng},
     ChaChaRng,
 };
-use rocksdb::{prelude::Open, OptimisticTransaction, OptimisticTransactionDB};
+use rocksdb::{
+    prelude::Open, BlockBasedOptions, BlockBasedIndexType, OptimisticTransaction,
+    OptimisticTransactionDB, Options, SliceTransform, FullOptions,
+};
 use std::time::Instant;
 
 macro_rules! bench {
@@ -17,7 +20,28 @@ macro_rules! bench {
         let start_block_number = args[3].parse::<u64>().unwrap();
         let total_blocks = args[4].parse::<u64>().unwrap();
 
-        let db = OptimisticTransactionDB::open_default(db_path).unwrap();
+        let mut block_opts = BlockBasedOptions::default();
+        block_opts.set_bloom_filter(10.0, false);
+        block_opts.set_whole_key_filtering(false);
+
+        let mut opts = Options::default();
+        opts.create_if_missing(true);
+        opts.enable_statistics();
+        opts.set_stats_dump_period_sec(30);
+        opts.set_prefix_extractor(SliceTransform::create_fixed_prefix(9));
+        opts.set_block_based_table_factory(&block_opts);
+        opts.set_allow_mmap_reads(true);
+        opts.set_allow_mmap_writes(true);
+
+        let db = OptimisticTransactionDB::open(&opts, db_path).unwrap();
+
+        // let full_opts = FullOptions::load_from_file(vec![db_path, "default.db-options"].join("/"), None, false).unwrap();
+        // let FullOptions {
+        //     mut db_opts,
+        //     cf_descriptors: _,
+        // } = full_opts;
+        // db_opts.create_if_missing(true);
+        // let db = OptimisticTransactionDB::open(&db_opts, db_path).unwrap();
         let mut tx = db.transaction_default();
         let mut accumulator = <$accumulator>::new(&tx).unwrap();
 
