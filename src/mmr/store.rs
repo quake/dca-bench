@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use merkle_mountain_range::{Error, MMRStoreReadOps, MMRStoreWriteOps};
-use rocksdb::{prelude::*, Direction, IteratorMode};
+use rocksdb::{prelude::*, Direction, IteratorMode, ReadOptions};
 
 const POS_KEY: &[u8] = &[0];
 const SEQUENCE_KEY: &[u8] = &[1];

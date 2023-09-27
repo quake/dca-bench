@@ -1,0 +1,15 @@
+# This is a RocksDB option file.
+#
+# For detailed file format spec, please refer to the official documents
+# in https://rocksdb.org/docs/
+#
+
+[DBOptions]
+
+[CFOptions "default"]
+prefix_extractor=rocksdb.FixedPrefix.9
+memtable_insert_with_hint_prefix_extractor=rocksdb.FixedPrefix.9
+
+[TableOptions/BlockBasedTable "default"]
+filter_policy=bloomfilter
+whole_key_filtering=false

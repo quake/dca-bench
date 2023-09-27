@@ -1,5 +1,8 @@
 use merkle_mountain_range::{leaf_index_to_mmr_size, Error, Merge, MMR};
-use rocksdb::{prelude::Open, OptimisticTransactionDB};
+use rocksdb::{
+    prelude::Open, BlockBasedOptions, BlockBasedIndexType, OptimisticTransactionDB, Options,
+    SliceTransform,
+};
 use tempfile::{Builder, TempDir};
 
 use crate::{
@@ -56,8 +59,19 @@ impl Merge for MergeWordHash {
 // return temp dir also to make sure it's not dropped automatically
 fn open_db() -> (OptimisticTransactionDB, TempDir) {
     let tmp_dir = Builder::new().tempdir().unwrap();
+    let mut block_opts = BlockBasedOptions::default();
+    block_opts.set_bloom_filter(10.0, false);
+    block_opts.set_whole_key_filtering(false);
+
+    let mut opts = Options::default();
+    opts.create_if_missing(true);
+    opts.set_prefix_extractor(SliceTransform::create_fixed_prefix(9));
+    opts.set_block_based_table_factory(&block_opts);
+    opts.set_allow_mmap_reads(true);
+    opts.set_allow_mmap_writes(true);
+
     (
-        OptimisticTransactionDB::open_default(tmp_dir.path()).unwrap(),
+        OptimisticTransactionDB::open(&opts, tmp_dir.path()).unwrap(),
         tmp_dir,
     )
 }
